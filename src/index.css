@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+    /* Chừa chỗ cho thanh điều hướng của điện thoại (tai thỏ, vạch home). */
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Bỏ nút tăng giảm của input number — trên điện thoại chỉ vướng tay. */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .the {
+    @apply rounded-2xl bg-slate-900 border border-slate-800 p-4;
+  }
+
+  .nut {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3
+           font-medium transition active:scale-[0.98] disabled:opacity-40
+           disabled:active:scale-100 disabled:cursor-not-allowed;
+  }
+
+  .nut-chinh {
+    @apply nut bg-emerald-500 text-slate-950 hover:bg-emerald-400;
+  }
+
+  .nut-phu {
+    @apply nut bg-slate-800 text-slate-100 hover:bg-slate-700;
+  }
+
+  .nut-vien {
+    @apply nut border border-slate-700 text-slate-300 hover:bg-slate-800;
+  }
+
+  .nut-nguy-hiem {
+    @apply nut bg-rose-600 text-white hover:bg-rose-500;
+  }
+
+  .o-nhap {
+    @apply w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3
+           text-slate-100 placeholder:text-slate-500
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-transparent;
+  }
+
+  .nhan {
+    @apply block text-sm font-medium text-slate-400 mb-1.5;
+  }
+
+  .chip {
+    @apply rounded-full px-3 py-1.5 text-sm border transition;
+  }
+
+  .chip-tat {
+    @apply chip border-slate-700 text-slate-400 hover:border-slate-600;
+  }
+
+  .chip-bat {
+    @apply chip border-emerald-500 bg-emerald-500/15 text-emerald-300;
+  }
+}
+
+/* Ẩn thanh cuộn ngang ở các dải chọn ngày, chip lọc. */
+.an-thanh-cuon {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.an-thanh-cuon::-webkit-scrollbar {
+  display: none;
+}
