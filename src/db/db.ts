@@ -49,7 +49,9 @@ export class SucKhoeDB extends Dexie {
     this.version(1).stores({
       // Chỉ index các trường thực sự dùng để truy vấn — index thừa làm chậm ghi.
       nguoiDung: 'id',
-      thucPham: '++id, ten, nhom, maVach, laCuaNguoiDung',
+      // laCuaNguoiDung là boolean nên không index được — IndexedDB bỏ qua khóa boolean.
+      // Lọc trường này bằng .filter() thay vì .where().
+      thucPham: '++id, ten, nhom, maVach',
       congThuc: '++id, ten, deletedAt',
       nhatKyAn: '++id, ngay, [ngay+loaiBua], thucPhamId, deletedAt',
       anhBuaAn: '++id, hash, chupLuc',
@@ -57,7 +59,7 @@ export class SucKhoeDB extends Dexie {
       soDoCoThe: '++id, &ngay, deletedAt',
       anhTienTrinh: '++id, ngay, deletedAt',
       chiSoSucKhoe: '++id, ngay, loai, [ngay+loai], deletedAt',
-      baiTap: '++id, ten, nhomCo, laCuaNguoiDung',
+      baiTap: '++id, ten, nhomCo',
       buoiTapMau: '++id, ten, deletedAt',
       lichTap: '++id, thuTrongTuan',
       nhatKyTap: '++id, ngay, buoiTapMauId, deletedAt',
