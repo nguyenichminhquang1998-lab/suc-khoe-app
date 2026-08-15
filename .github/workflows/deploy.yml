@@ -39,7 +39,11 @@ jobs:
         # nên phải build với BASE_PATH tương ứng.
         run: BASE_PATH="/${GITHUB_REPOSITORY#*/}/" npm run build
 
+      # enablement: tự bật GitHub Pages cho repo nếu chưa bật, đỡ phải vào Settings.
+      # Repo private cần gói GitHub Pro trở lên mới dùng được Pages.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
