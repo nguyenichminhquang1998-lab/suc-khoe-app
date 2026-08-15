@@ -147,7 +147,13 @@ export default function NhatKy() {
               <button className="nut-chinh" onClick={() => dieuHuong('/camera')}>
                 📷 Chụp món ăn
               </button>
-              <button className="nut-phu" onClick={() => datXacNhanChep(true)}>
+              <button
+                className="nut-phu"
+                onClick={() => dieuHuong(`/them-mon?ngay=${ngay}`)}
+              >
+                🔍 Tìm món hoặc nhập tay
+              </button>
+              <button className="nut-vien" onClick={() => datXacNhanChep(true)}>
                 Chép lại bữa hôm trước
               </button>
             </div>

@@ -8,10 +8,11 @@ import {
 import type { NguoiDung } from '../lib/types'
 
 export function useNguoiDung(): NguoiDung | undefined | null {
-  // undefined = đang tải, null = chưa có hồ sơ (cần onboarding)
-  const nd = useLiveQuery(() => db.nguoiDung.get(ID_NGUOI_DUNG), [])
-  if (nd === undefined) return undefined
-  return nd ?? null
+  // undefined = đang tải, null = chưa có hồ sơ (cần onboarding).
+  // Truy vấn phải tự quy undefined thành null: useLiveQuery cũng dùng undefined
+  // cho trạng thái đang tải, nên trả thẳng kết quả của .get() sẽ khiến hai
+  // trạng thái này không phân biệt được và app kẹt ở màn hình chờ.
+  return useLiveQuery(async () => (await db.nguoiDung.get(ID_NGUOI_DUNG)) ?? null, [])
 }
 
 export interface ChiSoMucTieu {
