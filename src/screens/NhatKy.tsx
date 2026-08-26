@@ -222,7 +222,7 @@ export default function NhatKy() {
                             <span className="text-sm font-semibold">{mon.dinhDuong.calo}</span>
                             <button
                               onClick={() => xoaMon(mon)}
-                              className="text-slate-600 hover:text-rose-400 px-1"
+                              className="h-7 w-7 flex items-center justify-center rounded-full text-lg leading-none text-slate-500 hover:bg-rose-500/15 hover:text-rose-400 transition"
                               aria-label="Xóa món"
                             >
                               ×
