@@ -4,6 +4,7 @@ import { donAnhMoCoi, donBanGhiCu } from './db/db'
 import { napDuLieuMacDinh } from './db/seed'
 import { xinLuuTruBenVung } from './db/saoluu'
 import { useNguoiDung } from './hooks/useApp'
+import CapNhatApp from './components/CapNhatApp'
 import HomNay from './screens/HomNay'
 import NhatKy from './screens/NhatKy'
 
@@ -127,6 +128,7 @@ export default function App() {
         </Suspense>
       </main>
       {!anThanhDieuHuong && <ThanhDieuHuong />}
+      <CapNhatApp />
     </div>
   )
 }

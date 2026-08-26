@@ -16,7 +16,16 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' chứ không phải 'autoUpdate': với autoUpdate, thư viện tự
+      // window.location.reload() ngay khi có bản mới và KHÔNG BAO GIỜ gọi
+      // onNeedRefresh — nghĩa là banner báo cập nhật trong CapNhatApp.tsx sẽ
+      // không bao giờ hiện. 'prompt' giữ service worker mới ở trạng thái chờ
+      // và gọi onNeedRefresh, để người dùng chủ động bấm "Tải lại" thay vì bị
+      // app tự reload đột ngột giữa lúc đang gõ dở.
+      registerType: 'prompt',
+      // Tự đăng ký service worker qua CapNhatApp.tsx (hook useRegisterSW) để
+      // chủ động kiểm tra bản mới, nên tắt script tự đăng ký mặc định của plugin.
+      injectRegister: null,
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Sức Khỏe App',
