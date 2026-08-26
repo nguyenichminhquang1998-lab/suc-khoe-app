@@ -7,9 +7,9 @@ import { NHAN_NHOM_CO } from '../data/baitap'
 import { ngayLocal, themNgay } from '../lib/tinhtoan'
 import { useThongBao } from '../hooks/useApp'
 import {
-  BangTruot, ThongBao, TieuDeTrang, TrangRong,
+  BangTruot, HopThoaiXacNhan, ThongBao, TieuDeTrang, TrangRong,
 } from '../components/chung'
-import type { BaiTap, BaiTapTrongMau, BuoiTapMau, NhomCo } from '../lib/types'
+import type { BaiTap, BaiTapTrongMau, BuoiTapMau, NhatKyTap, NhomCo } from '../lib/types'
 
 const THU = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
@@ -27,6 +27,10 @@ export default function TapLuyen() {
   const [moChonBai, datMoChonBai] = useState(false)
   const [xemBai, datXemBai] = useState<BaiTap | null>(null)
   const [ganLich, datGanLich] = useState<BuoiTapMau | null>(null)
+  const [xemBuoi, datXemBuoi] = useState<NhatKyTap | null>(null)
+  const [ghiChuSua, datGhiChuSua] = useState('')
+  const [camNhanSua, datCamNhanSua] = useState<1 | 2 | 3 | 4 | 5 | undefined>(undefined)
+  const [xacNhanXoaBuoi, datXacNhanXoaBuoi] = useState(false)
 
   const mauTap = useLiveQuery(
     async () => (await db.buoiTapMau.toArray()).filter((m) => !m.deletedAt),
@@ -38,6 +42,16 @@ export default function TapLuyen() {
     () => layNhatKyTapTheoKhoang(themNgay(ngayLocal(), -6), ngayLocal()),
     [],
   )
+  const setCuaBuoiXem = useLiveQuery(async () => {
+    if (!xemBuoi?.id) return []
+    const sets = await db.setTap.where('nhatKyTapId').equals(xemBuoi.id).sortBy('thuTuSet')
+    const dsBaiTapId = [...new Set(sets.map((s) => s.baiTapId))]
+    const baiTapCuaBuoi = await db.baiTap.bulkGet(dsBaiTapId)
+    return dsBaiTapId.map((baiTapId, i) => ({
+      bai: baiTapCuaBuoi[i],
+      sets: sets.filter((s) => s.baiTapId === baiTapId),
+    }))
+  }, [xemBuoi?.id])
 
   const baiTapLoc = (baiTap ?? []).filter(
     (b) => nhomLoc === 'tat_ca' || b.nhomCo === nhomLoc,
@@ -74,6 +88,33 @@ export default function TapLuyen() {
     }
     datMoTaoMau(false)
     hien('Đã lưu buổi tập')
+  }
+
+  function moXemBuoi(b: NhatKyTap) {
+    datXemBuoi(b)
+    datGhiChuSua(b.ghiChu)
+    datCamNhanSua(b.camNhan)
+  }
+
+  async function luuGhiChuBuoi() {
+    if (!xemBuoi) return
+    await db.nhatKyTap.update(xemBuoi.id!, {
+      ghiChu: ghiChuSua, camNhan: camNhanSua, suaLuc: Date.now(),
+    })
+    hien('Đã lưu')
+    datXemBuoi(null)
+  }
+
+  async function xoaBuoi() {
+    if (!xemBuoi) return
+    const idBuoi = xemBuoi.id!
+    await xoaMem(db.nhatKyTap, idBuoi)
+    datXacNhanXoaBuoi(false)
+    datXemBuoi(null)
+    hien('Đã xóa buổi tập', 'thanh_cong', async () => {
+      await khoiPhuc(db.nhatKyTap, idBuoi)
+      an()
+    })
   }
 
   async function doiLich(mauId: number, thu: number) {
@@ -221,7 +262,11 @@ export default function TapLuyen() {
         <div className="space-y-2">
           {tuanNay && tuanNay.length > 0 ? (
             [...tuanNay].reverse().map((b) => (
-              <div key={b.id} className="the">
+              <button
+                key={b.id}
+                onClick={() => moXemBuoi(b)}
+                className="the w-full text-left hover:border-slate-700 transition"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium text-sm">{b.ten}</div>
@@ -236,7 +281,7 @@ export default function TapLuyen() {
                     <div className="text-xs text-slate-500">{b.caloDot} kcal</div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))
           ) : (
             <TrangRong bieuTuong="📋" tieuDe="Tuần này chưa tập buổi nào" />
@@ -474,6 +519,93 @@ export default function TapLuyen() {
           </>
         )}
       </BangTruot>
+
+      <BangTruot mo={!!xemBuoi} dong={() => datXemBuoi(null)} tieuDe={xemBuoi?.ten ?? ''}>
+        {xemBuoi && (
+          <div className="space-y-5">
+            <div className="the grid grid-cols-3 gap-2 text-center">
+              <div>
+                <div className="text-sm font-semibold">
+                  {new Date(xemBuoi.ngay + 'T00:00:00').toLocaleDateString('vi-VN')}
+                </div>
+                <div className="text-xs text-slate-500">Ngày</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold">{xemBuoi.tongVolume} kg</div>
+                <div className="text-xs text-slate-500">Volume</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold">{xemBuoi.caloDot} kcal</div>
+                <div className="text-xs text-slate-500">Calo đốt</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {setCuaBuoiXem?.map(({ bai, sets }) => (
+                <div key={bai?.id} className="the py-3">
+                  <div className="font-medium text-sm mb-1.5">{bai?.ten ?? 'Bài tập'}</div>
+                  <div className="text-xs text-slate-500">
+                    {bai?.laCardio
+                      ? sets.map((s) => `${s.phut ?? 0} phút`).join(', ')
+                      : sets
+                          .filter((s) => s.hoanThanh)
+                          .map((s) => `${s.taKg}kg×${s.rep}`)
+                          .join(', ') || 'Không có set nào hoàn thành'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <label className="nhan">
+                Cảm nhận {camNhanSua ? `(${camNhanSua}/5)` : ''}
+              </label>
+              <div className="flex gap-1.5">
+                {([1, 2, 3, 4, 5] as const).map((sao) => (
+                  <button
+                    key={sao}
+                    onClick={() => datCamNhanSua(sao)}
+                    className="flex-1 rounded-xl border border-slate-700 py-2.5 text-xl leading-none"
+                    aria-label={`${sao} sao`}
+                  >
+                    {(camNhanSua ?? 0) >= sao ? '⭐' : '☆'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="nhan">Ghi chú</label>
+              <textarea
+                className="o-nhap"
+                rows={3}
+                placeholder="Cảm giác buổi tập, chấn thương, ghi chú khác..."
+                value={ghiChuSua}
+                onChange={(e) => datGhiChuSua(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button className="nut-nguy-hiem flex-1" onClick={() => datXacNhanXoaBuoi(true)}>
+                Xóa buổi tập
+              </button>
+              <button className="nut-chinh flex-1" onClick={luuGhiChuBuoi}>
+                Lưu
+              </button>
+            </div>
+          </div>
+        )}
+      </BangTruot>
+
+      <HopThoaiXacNhan
+        mo={xacNhanXoaBuoi}
+        tieuDe="Xóa buổi tập này?"
+        noiDung={`Toàn bộ dữ liệu buổi "${xemBuoi?.ten ?? ''}" sẽ bị xóa. Bạn hoàn tác được trong ít giây sau khi xóa.`}
+        nhanDongY="Xóa"
+        nguyHiem
+        huy={() => datXacNhanXoaBuoi(false)}
+        dongY={xoaBuoi}
+      />
 
       {thongBao && (
         <ThongBao noiDung={thongBao.noiDung} loai={thongBao.loai} hoanTac={thongBao.hoanTac} />
